@@ -1,0 +1,6 @@
+# Use wildcards as well
+*~
+*.swp
+
+# .beam files
+*.beam
