@@ -1,56 +1,71 @@
 -module(chat_server).
--behaviour(gen_server).
 
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--export([start/0]).
+-export([start/1, pre_loop/1]).
 
-% These are all wrappers for calls to the server
-start() -> gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
+start(Port) ->
+    controller:start(),
+    tcp_server:start(?MODULE, Port, {?MODULE, pre_loop}).
 
-% This is called when a connection is made to the server
-init([]) ->
-    Users = dict:new(), % It maps nick to pid
-    PIDs = dict:new(), % It maps pid to nick
-    {ok, {Users, PIDs}}.
-
-% handle_call is invoked in response to gen_server:call
-handle_call({connect, Nick}, {From, _Ref}, {Users, PIDs}) ->
-    io:format("connect ~p->~p~n", [From, Nick]),
-    Response = case dict:is_key(Nick, Users) of
-        true ->
-            NewUsers = Users,
-            NewPIDs = PIDs,
-            {nick_in_use, Nick};
-        false ->
-            NewUsers = dict:append(Nick, From, Users),
-            NewPIDs = dict:append(From, Nick, PIDs),
+pre_loop(Socket) ->
+    case gen_tcp:recv(Socket, 0) of
+        {ok, Data} ->
+            Message = binary_to_list(Data),
+            {Command, [_|Nick]} = lists:splitwith(fun(T) -> [T] =/= ":" end, Message),
+            case Command of
+                "CONNECT" ->
+                    try_connection(Nick, Socket);
+                _ ->
+                    gen_tcp:send(Socket, "Unknown command!"),
+                    ok
+            end;
+        {error, closed} ->
             ok
-    end,
-    {reply, Response, {NewUsers, NewPIDs}};
+    end.
 
-handle_call(disconnect, {From, _Ref}, {Users, PIDs}) ->
-    Response = case dict:is_key(From, PIDs) of
-        true ->
-            Nick = lists:nth(1, dict:fetch(From, PIDs)),
-            NewPIDs = dict:erase(From, PIDs),
-            NewUsers = dict:erase(Nick, Users),
-            {ok, Nick};
-        false ->
-            NewUsers = Users,
-            NewPIDs = PIDs,
-            user_not_found
-    end,
-    {reply, Response, {NewUsers, NewPIDs}};
+try_connection(Nick, Socket) ->
+    Response = gen_server:call(controller, {connect, Nick, Socket}),
+    case Response of
+        {ok, List} ->
+            gen_tcp:send(Socket, "CONNECT:ok:" ++ List),
+            loop(Nick, Socket);
+        nick_in_use ->
+            gen_tcp:send(Socket, "CONNECT:error:Nick in use."),
+            ok
+    end.
 
-handle_call(_Message, _From, State) ->
-    {reply, error, State}.
+loop(Nick, Socket) ->
+    case gen_tcp:recv(Socket, 0) of
+        {ok, Data} ->
+            io:format("Data: ~p~n", [binary_to_list(Data)]),
+            Message = binary_to_list(Data),
+            {Command, [_|Content]} = lists:splitwith(fun(T) -> [T] =/= ":" end, Message),
+            case Command of
+                "SAY" ->
+                    say(Nick, Socket, Content);
+                "PVT" ->
+                    private_message(Nick, Socket);
+                "QUIT" ->
+                    quit(Nick, Socket)
+            end;
+        {error, closed} ->
+            ok
+    end.
 
+say(Nick, Socket, Content) ->
+    gen_server:cast(controller, {say, Nick, Content}),
+    loop(Nick, Socket).
 
-handle_cast({message, From, Msg}, {Users, PIDs}) -> 
-    %% TODO broadcast
-    {noreply, {Users, PIDs}}.
+private_message(Nick, Socket) ->
+    ok.
 
-% We get compile warnings from gen_server unless we define these
-handle_info(_Message, State) -> {noreply, State}.
-terminate(_Reason, _State) -> ok.
-code_change(_OldVersion, State, _Extra) -> {ok, State}.
+quit(Nick, Socket) ->
+    io:format("Nick to remove: ~p~n", [Nick]),
+    Response = gen_server:call(controller, {disconnect, Nick}),
+    case Response of
+        ok ->
+            gen_tcp:send(Socket, "Bye."),
+            ok;
+        user_not_found ->
+            gen_tcp:send(Socket, "Bye with errors."),
+            ok
+    end.
