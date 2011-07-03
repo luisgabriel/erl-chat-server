@@ -4,3 +4,8 @@
 
 # .beam files
 *.beam
+
+*.o
+moc_*
+*.pro.user
+Makefile
