@@ -5,7 +5,7 @@
 -export([start/0]).
 
 % These are all wrappers for calls to the server
-start() -> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start() -> gen_server:start_link({global, ?MODULE}, ?MODULE, [], []).
 
 % This is called when a connection is made to the server
 init([]) ->
