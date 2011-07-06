@@ -27,6 +27,7 @@ private:
     void displayInfo(QString);
     void displayUsage(QString);
     void updateOnlineUsers();
+    void closeEvent(QCloseEvent*);
     QTcpSocket* socket;
     QTextEdit* chat;
     QTextEdit* online;

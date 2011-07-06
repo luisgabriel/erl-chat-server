@@ -264,3 +264,13 @@ void MainWindow::disconnected()
         displayInfo(QLatin1String("Disconnected!"));
     }
 }
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+    if (m_connected)
+    {
+        socket->write("QUIT:\n");
+        socket->close();
+    }
+    QMainWindow::closeEvent(event);
+}
