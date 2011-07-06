@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QtGui>
+#include "chatlineedit.h"
 
 namespace Ui {
     class MainWindow;
@@ -18,14 +19,23 @@ public:
     ~MainWindow();
 
 private:
+    void displayMessage(QString nick, QString said);
+    void displayInfo(QString);
+    void displayUsage(QString);
     QTcpSocket* socket;
     QTextEdit* chat;
-    QLineEdit* msg;
+    ChatLineEdit* msg;
+    QString m_nick;
+    QString m_host;
+    int m_port;
+    bool m_connected;
 
 protected slots:
     void readSocket();
     void errorSocket(QAbstractSocket::SocketError);
-    void teste();
+    void sendMessage(QString);
+    void connected();
+    void disconnected();
 };
 
 #endif // MAINWINDOW_H

@@ -11,8 +11,10 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    chatlineedit.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    chatlineedit.h
 
-FORMS    += mainwindow.ui
+FORMS    +=
