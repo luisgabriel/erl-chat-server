@@ -23,6 +23,7 @@ public:
 private:
     void displayMessage(QString nick, QString said);
     void displayPvtMessage(QString nick, QString said);
+    void displaySentPvtMessage(QString nick, QString said);
     void displayInfo(QString);
     void displayUsage(QString);
     void updateOnlineUsers();

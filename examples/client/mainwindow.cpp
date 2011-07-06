@@ -72,6 +72,12 @@ void MainWindow::displayPvtMessage(QString nick, QString said)
     scrollDown(chat);
 }
 
+void MainWindow::displaySentPvtMessage(QString nick, QString said)
+{
+    chat->append(QString("<b>%1[<font color='#E22'>@</font>%2]</b>: <font color='#222'>%3</font>").arg(m_nick).arg(nick).arg(said));
+    scrollDown(chat);
+}
+
 void MainWindow::displayInfo(QString info)
 {
     chat->append(QString("<font color='#d22'><b>!</b> %1</font>").arg(info));
@@ -95,6 +101,12 @@ void MainWindow::sendMessage(QString msgToSend)
     QString cmd = list.first().toLower();
     if (cmd == "/nick")
     {
+        if (m_connected)
+        {
+            displayInfo(QString("You can't change your nick while connected!"));
+            return;
+        }
+
         if (list.size() > 1)
         {
             m_nick = list.at(1);
@@ -134,15 +146,41 @@ void MainWindow::sendMessage(QString msgToSend)
         displayInfo(QString("Connecting to %1 at port %2...").arg(m_host).arg(m_port));
         return;
     }
+    if (cmd == "/quit")
+    {
+        if (!m_connected)
+        {
+            displayInfo(QString("You cannot disconnected. You must be connected first!"));
+        }
+        socket->write("QUIT:\n");
+        return;
+    }
 
     if (!m_connected)
     {
         displayInfo(QLatin1String("You're not connected. You can't send messages!"));
+        return;
+    }
+
+    if (cmd.at(0) == '@')
+    {
+        QString who = cmd.remove(0,1);
+        list.removeFirst();
+        msgToSend = list.join(":");
+        //qDebug() << "send msg to " << who << " = " << msgToSend;
+        socket->write("PVT:");
+        socket->write(who.toLatin1());
+        socket->write(":");
+        socket->write(msgToSend.toLatin1());
+        socket->write("\n");
+        displaySentPvtMessage(who, msgToSend);
+        return;
     }
 
     socket->write("SAY:");
     socket->write(msgToSend.toLatin1());
     socket->write("\n");
+    displayMessage(m_nick, msgToSend);
 }
 
 void MainWindow::readSocket()
