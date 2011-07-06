@@ -41,8 +41,20 @@ handle_call(_Message, _From, State) ->
 
 % handle_cast is invoked in response to gen_server:cast
 handle_cast({say, Nick, Msg}, Users) ->
-    BroadcastMsg = "SAID:" ++ Nick ++ ":" ++ Msg,
-    broadcast(BroadcastMsg, Users),
+    broadcast(Nick, "SAID:" ++ Nick ++ ":" ++ Msg ++ "\n", Users),
+    {noreply, Users};
+
+handle_cast({private_message, Nick, Receiver, Msg}, Users) ->
+    Socket = dict:fetch(Receiver, Users),
+    gen_tcp:send(Socket, "PVT:" ++ Nick ++ ":" ++ Msg ++ "\n"),
+    {noreply, Users};
+
+handle_cast({join, Nick}, Users) ->
+    broadcast(Nick, "JOIN:" ++ Nick ++ "\n", Users),
+    {noreply, Users};
+
+handle_cast({left, Nick}, Users) ->
+    broadcast(Nick, "LEFT:" ++ Nick ++ "\n", Users),
     {noreply, Users};
 
 handle_cast(_Message, State) ->
@@ -50,8 +62,8 @@ handle_cast(_Message, State) ->
 
 
 % auxiliary functions
-broadcast(Msg, Users) ->
-    Sockets = lists:map(fun({_, [Value|_]}) -> Value end, dict:to_list(Users)),
+broadcast(Nick, Msg, Users) ->
+    Sockets = lists:map(fun({_, [Value|_]}) -> Value end, dict:to_list(dict:erase(Nick, Users))),
     lists:foreach(fun(Sock) -> gen_tcp:send(Sock, Msg) end, Sockets).
 
 user_list(Users) ->
