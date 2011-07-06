@@ -24,9 +24,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(socket, SIGNAL(connected()), this, SLOT(connected()));
     connect(socket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 
-    //socket->connectToHost(QString("172.22.57.190"), 7000);
-    //socket->connectToHost(QString("127.0.0.1"), 7000);
-
     chat = new QTextEdit(this);
     chat->setReadOnly(true);
     chat->setGeometry(QRect(5, 5, 800-5-150, 600-5-30));
@@ -43,7 +40,6 @@ MainWindow::MainWindow(QWidget *parent) :
     displayInfo(QString("Welcome to the Erlang Client Chat (implemented in C++)."));
     displayUsage(QString("Your current nick is %1. Change it by typing <strong>/nick [new nick]</strong>.").arg(m_nick));
     displayUsage(QString("Connect to Erlang Chatroom by typing <strong>/connect [ip] [port]</strong>."));
-
 }
 
 MainWindow::~MainWindow()
@@ -61,7 +57,7 @@ void MainWindow::updateOnlineUsers()
 }
 
 void MainWindow::displayMessage(QString nick, QString said)
-{;
+{
     chat->append(QString("<b>%1</b>: <font color='#222'>%2</font>").arg(nick).arg(said));
     scrollDown(chat);
 }
@@ -244,6 +240,8 @@ void MainWindow::errorSocket(QAbstractSocket::SocketError)
     {
         m_connected = false;
         displayInfo("Disconnected!");
+        m_online.clear();
+        updateOnlineUsers();
     }
 }
 
@@ -262,6 +260,7 @@ void MainWindow::disconnected()
     {
         m_connected = false;
         displayInfo(QLatin1String("Disconnected!"));
+        m_online.clear();
     }
 }
 
@@ -271,6 +270,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
     {
         socket->write("QUIT:\n");
         socket->close();
+        updateOnlineUsers();
     }
     QMainWindow::closeEvent(event);
 }
