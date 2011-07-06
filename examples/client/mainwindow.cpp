@@ -96,7 +96,6 @@ void MainWindow::displayUsage(QString usage)
 
 void MainWindow::sendMessage(QString msgToSend)
 {
-    //qDebug() << "I should send " << msgToSend;
     QStringList list = msgToSend.split(QString(" "));
     QString cmd = list.first().toLower();
     if (cmd == "/nick")
@@ -166,8 +165,7 @@ void MainWindow::sendMessage(QString msgToSend)
     {
         QString who = cmd.remove(0,1);
         list.removeFirst();
-        msgToSend = list.join(":");
-        //qDebug() << "send msg to " << who << " = " << msgToSend;
+        msgToSend = list.join(" ");
         socket->write("PVT:");
         socket->write(who.toLatin1());
         socket->write(":");
@@ -185,7 +183,6 @@ void MainWindow::sendMessage(QString msgToSend)
 
 void MainWindow::readSocket()
 {
-    //while (true) {
         if (!socket->canReadLine())
             return;
         QString temp = socket->readLine();
@@ -239,24 +236,31 @@ void MainWindow::readSocket()
         }
 
         qDebug() << "recebi: " << temp;
-   // }
 }
 
-void MainWindow::errorSocket(QAbstractSocket::SocketError error)
+void MainWindow::errorSocket(QAbstractSocket::SocketError)
 {
-    qDebug() << "error: " << error;
-    m_connected = false;
-    displayInfo("Disconnected!");
+    if (m_connected)
+    {
+        m_connected = false;
+        displayInfo("Disconnected!");
+    }
 }
 
 void MainWindow::connected()
 {
-    m_connected = true;
-    displayInfo(QLatin1String("Connected!"));
+    if (!m_connected)
+    {
+        m_connected = true;
+        displayInfo(QLatin1String("Connected! To disconnect, type <strong>/quit</strong>."));
+    }
 }
 
 void MainWindow::disconnected()
 {
-    m_connected = false;
-    displayInfo(QLatin1String("Disconnected!"));
+    if (m_connected)
+    {
+        m_connected = false;
+        displayInfo(QLatin1String("Disconnected!"));
+    }
 }
