@@ -185,9 +185,12 @@ void MainWindow::sendMessage(QString msgToSend)
 
 void MainWindow::readSocket()
 {
-    while (true) {
+    //while (true) {
+        if (!socket->canReadLine())
+            return;
         QString temp = socket->readLine();
-        if (temp.isEmpty()) break;
+
+
         temp = temp.remove('\n');
         QStringList list = temp.split(':');
         QString cmd = list.first();
@@ -236,7 +239,7 @@ void MainWindow::readSocket()
         }
 
         qDebug() << "recebi: " << temp;
-    }
+   // }
 }
 
 void MainWindow::errorSocket(QAbstractSocket::SocketError error)
