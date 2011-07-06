@@ -12,9 +12,10 @@ pre_loop(Socket) ->
             io:format("Data: ~p~n", [binary_to_list(Data)]),
             Message = binary_to_list(Data),
             {Command, [_|Nick]} = lists:splitwith(fun(T) -> [T] =/= ":" end, Message),
+            io:format("Nick: ~p~n", [Nick]),
             case Command of
                 "CONNECT" ->
-                    try_connection(Nick, Socket);
+                    try_connection(clean(Nick), Socket);
                 _ ->
                     gen_tcp:send(Socket, "Unknown command!\n"),
                     ok
@@ -43,10 +44,10 @@ loop(Nick, Socket) ->
             {Command, [_|Content]} = lists:splitwith(fun(T) -> [T] =/= ":" end, Message),
             case Command of
                 "SAY" ->
-                    say(Nick, Socket, Content);
+                    say(Nick, Socket, clean(Content));
                 "PVT" ->
                     {ReceiverNick, [_|Msg]} = lists:splitwith(fun(T) -> [T] =/= ":" end, Content),
-                    private_message(Nick, Socket, ReceiverNick, Msg);
+                    private_message(Nick, Socket, ReceiverNick, clean(Msg));
                 "QUIT" ->
                     quit(Nick, Socket)
             end;
@@ -73,3 +74,6 @@ quit(Nick, Socket) ->
             gen_tcp:send(Socket, "Bye with errors.\n"),
             ok
     end.
+
+clean(Data) ->
+    string:strip(Data, both, $\n).
