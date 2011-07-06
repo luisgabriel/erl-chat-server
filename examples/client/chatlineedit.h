@@ -3,8 +3,8 @@
 
 
 #include <QMainWindow>
-#include <QTcpSocket>
-#include <QtGui>
+#include <QLineEdit>
+#include <QKeyEvent>
 
 class ChatLineEdit : public QLineEdit
 {

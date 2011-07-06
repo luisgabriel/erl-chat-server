@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QTcpSocket>
-#include <QtGui>
+#include <QTextEdit>
+#include <QScrollBar>
+#include <QStringList>
 #include "chatlineedit.h"
 
 namespace Ui {
@@ -20,15 +22,19 @@ public:
 
 private:
     void displayMessage(QString nick, QString said);
+    void displayPvtMessage(QString nick, QString said);
     void displayInfo(QString);
     void displayUsage(QString);
+    void updateOnlineUsers();
     QTcpSocket* socket;
     QTextEdit* chat;
+    QTextEdit* online;
     ChatLineEdit* msg;
     QString m_nick;
     QString m_host;
     int m_port;
     bool m_connected;
+    QStringList m_online;
 
 protected slots:
     void readSocket();
