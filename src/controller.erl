@@ -45,7 +45,7 @@ handle_cast({say, Nick, Msg}, Users) ->
     {noreply, Users};
 
 handle_cast({private_message, Nick, Receiver, Msg}, Users) ->
-    Socket = dict:fetch(Receiver, Users),
+    [Socket|_] = dict:fetch(Receiver, Users),
     gen_tcp:send(Socket, "PVT:" ++ Nick ++ ":" ++ Msg ++ "\n"),
     {noreply, Users};
 
