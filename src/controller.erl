@@ -45,8 +45,13 @@ handle_cast({say, Nick, Msg}, Users) ->
     {noreply, Users};
 
 handle_cast({private_message, Nick, Receiver, Msg}, Users) ->
-    [Socket|_] = dict:fetch(Receiver, Users),
-    gen_tcp:send(Socket, "PVT:" ++ Nick ++ ":" ++ Msg ++ "\n"),
+    Temp = dict:find(Receiver, Users),
+    case Temp of
+        {ok, [Socket|_]} ->
+            gen_tcp:send(Socket, "PVT:" ++ Nick ++ ":" ++ Msg ++ "\n");
+        _ ->
+            ok
+    end,
     {noreply, Users};
 
 handle_cast({join, Nick}, Users) ->
