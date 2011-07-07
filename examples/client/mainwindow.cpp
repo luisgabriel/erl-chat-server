@@ -159,7 +159,7 @@ void MainWindow::sendMessage(QString msgToSend)
 
     if (cmd.at(0) == '@')
     {
-        QString who = cmd.remove(0,1);
+        QString who = list.first().remove(0,1);
         list.removeFirst();
         msgToSend = list.join(" ");
         socket->write("PVT:");
@@ -231,7 +231,7 @@ void MainWindow::readSocket()
             }
         }
 
-        qDebug() << "recebi: " << temp;
+        //qDebug() << "recebi: " << temp;
 }
 
 void MainWindow::errorSocket(QAbstractSocket::SocketError)
