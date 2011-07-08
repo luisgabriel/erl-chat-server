@@ -2,15 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QScrollBar>
+#include <QSet>
+#include <QStringList>
 #include <QTcpSocket>
 #include <QTextEdit>
-#include <QScrollBar>
-#include <QStringList>
-#include "chatlineedit.h"
 
-namespace Ui {
-    class MainWindow;
-}
+#include "chatlineedit.h"
 
 class MainWindow : public QMainWindow
 {
@@ -18,14 +16,13 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
 
 private:
-    void displayMessage(QString nick, QString said);
-    void displayPvtMessage(QString nick, QString said);
-    void displaySentPvtMessage(QString nick, QString said);
-    void displayInfo(QString);
-    void displayUsage(QString);
+    void displayMessage(const QString& nick, const QString& said);
+    void displayPvtMessage(const QString& nick, const QString& said);
+    void displaySentPvtMessage(const QString& nick, const QString& said);
+    void displayInfo(const QString&);
+    void displayUsage(const QString&);
     void updateOnlineUsers();
     void closeEvent(QCloseEvent*);
     QTcpSocket* socket;
@@ -36,7 +33,7 @@ private:
     QString m_host;
     int m_port;
     bool m_connected;
-    QStringList m_online;
+    QSet<QString> m_online;
 
 protected slots:
     void readSocket();

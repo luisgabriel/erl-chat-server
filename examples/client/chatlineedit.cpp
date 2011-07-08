@@ -1,5 +1,4 @@
 #include "chatlineedit.h"
-#include <QDebug>
 
 ChatLineEdit::ChatLineEdit(QWidget* parent)
     : QLineEdit(parent)
