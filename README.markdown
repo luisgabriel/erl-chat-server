@@ -20,7 +20,7 @@ The protocol messages will be described below.
 
 `QUIT:`: Disconnect from the server.
 ### Server to Client
-`CONNECT:OK:<nick1>:<nick2>:(...):<nickN>`: Positive response from a CONNECT message sent by the client. The online users list is sent in the message.
+`CONNECT:OK:<nick1>:<nick2>:(...):<nickN>`: Positive response from a CONNECT message sent by client. The online user list is sent in message.
 
 `CONNECT:ERROR:<reason>`: Negative response from a CONNECT message sent by the client.
 
