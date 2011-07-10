@@ -30,14 +30,11 @@ init(State = #server_state{port=Port}) ->
 handle_cast({accepted, _Pid}, State=#server_state{}) ->
     {noreply, accept(State)}.
 
-accept_loop({Server, LSocket, {M, F}}) ->
+accept_loop({Server, LSocket, {Module, LoopFunction}}) ->
     {ok, Socket} = gen_tcp:accept(LSocket),
-    % Let the server spawn a new process and replace this loop
-    % with the echo loop, to avoid blocking 
     gen_server:cast(Server, {accepted, self()}),
-    M:F(Socket).
+    Module:LoopFunction(Socket).
 
-% To be more robust we should be using spawn_link and trapping exits
 accept(State = #server_state{lsocket=LSocket, loop = Loop}) ->
     proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket, Loop}]),
     State.
